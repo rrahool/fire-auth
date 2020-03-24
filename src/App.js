@@ -56,6 +56,21 @@ function App() {
     
   }
 
+  const handleChange = e => {
+    const newUserInfo = {
+      ...user
+    };
+    // perform validation
+    newUserInfo[e.target.name] =e.target.value;
+    setUser(newUserInfo);
+  }
+
+  const createAccount = () => {
+    //
+    console.log(user.email, user.password);
+    
+  }
+
   return (
     <div className="App">
         {
@@ -68,6 +83,12 @@ function App() {
               <img src={user.photo} alt=""/>
           </div>
         }
+        <h1>User Authentication</h1>
+        <input type="text" onBlur={handleChange} name="email" placeholder="Your Email"/>
+        <br/>
+        <input type="password" onBlur={handleChange} name="password" placeholder="Your Password"/>
+        <br/>
+        <button onClick={createAccount}>Create Account</button>
     </div>
   );
 }
