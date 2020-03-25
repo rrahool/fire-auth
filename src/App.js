@@ -44,7 +44,10 @@ function App() {
           isSignedIn: false,
           name: '',
           email: '',
-          photo: ''
+          photo: '',
+          password: '',
+          isValidName: false,
+          isValidPass: false
         }
         setUser(signedOutUser);
         console.log(res);
@@ -56,19 +59,38 @@ function App() {
     
   }
 
+  const is_valid_email = email => /(.+)@(.+){2,}\.(.+){2,}/.test(email);
+  const hasNumber = input =>  /\d/.test(input);
+
   const handleChange = e => {
     const newUserInfo = {
       ...user
     };
+
     // perform validation
-    newUserInfo[e.target.name] =e.target.value;
+    let isValidName = true;
+    let isValidPass = true;
+    if(e.target.name === 'email'){
+      isValidName = is_valid_email(e.target.value);
+    }
+    if(e.target.name === 'password'){
+      isValidPass = e.target.value > 8 && hasNumber(e.target.value) ;
+    }
+    
+
+    newUserInfo[e.target.name] = e.target.value;
+    newUserInfo.isValidName = isValidName;
+    newUserInfo.isValidPass = isValidPass;
     setUser(newUserInfo);
   }
 
-  const createAccount = () => {
-    //
-    console.log(user.email, user.password);
-    
+  const createAccount = () => {  
+    if(user.isValidName && user.isValidPass){
+      console.log(user.email, user.password);
+    }
+    else{
+      console.log("Form is not valid");
+    }
   }
 
   return (
@@ -84,11 +106,13 @@ function App() {
           </div>
         }
         <h1>User Authentication</h1>
-        <input type="text" onBlur={handleChange} name="email" placeholder="Your Email"/>
-        <br/>
-        <input type="password" onBlur={handleChange} name="password" placeholder="Your Password"/>
-        <br/>
-        <button onClick={createAccount}>Create Account</button>
+        <form onSubmit={createAccount}>
+          <input type="text" onBlur={handleChange} name="email" placeholder="Your Email" required/>
+          <br/>
+          <input type="password" onBlur={handleChange} name="password" placeholder="Your Password" required/>
+          <br/>
+          <input type="submit" value="Create Account"/>
+        </form>
     </div>
   );
 }
