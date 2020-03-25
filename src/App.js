@@ -46,9 +46,9 @@ function App() {
           email: '',
           photo: '',
           password: '',
-          isValidName: false,
-          isValidPass: false,
-          error: ''
+          isValid: false,
+          error: '',
+          existingUser: false
         }
         setUser(signedOutUser);
         console.log(res);
@@ -63,30 +63,34 @@ function App() {
   const is_valid_email = email => /(.+)@(.+){2,}\.(.+){2,}/.test(email);
   const hasNumber = input =>  /\d/.test(input);
 
+  const switchForm = e => {
+    const createdUser = {...user};
+    createdUser.existingUser = e.target.checked;
+    setUser(createdUser);
+  }
+
   const handleChange = e => {
     const newUserInfo = {
       ...user
     };
     // debugger;
     // perform validation
-    let isValidName = true;
-    let isValidPass = true;
+    let isValid = true;
     if(e.target.name === 'email'){
-      isValidName = is_valid_email(e.target.value);
+      isValid = is_valid_email(e.target.value);
     }
     if(e.target.name === 'password'){
-      isValidPass = e.target.value.length > 8 && hasNumber(e.target.value) ;
+      isValid = e.target.value.length > 8 && hasNumber(e.target.value) ;
     }
     
 
     newUserInfo[e.target.name] = e.target.value;
-    newUserInfo.isValidName = isValidName;
-    newUserInfo.isValidPass = isValidPass;
+    newUserInfo.isValid = isValid;
     setUser(newUserInfo);
   }
 
   const createAccount = (event) => {  
-    if(user.isValidName && user.isValidPass){
+    if(user.isValid){
       firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
       .then(res => {
         console.log(res);
@@ -103,11 +107,30 @@ function App() {
         setUser(createdUser);
       })
     }
-    else{
-      console.log("Form is not valid", user);
-    }
     event.preventDefault();
     event.target.reset();
+  }
+
+  const signInUser = e => {
+    if(user.isValid){
+      firebase.auth().signInWithEmailAndPassword(user.email, user.password)
+      .then(res => {
+        console.log(res);
+        const createdUser = {...user};
+        createdUser.isSignedIn = true;
+        setUser(createdUser);
+      })      
+      .catch(err =>  {
+        // Handle Errors here.
+        console.log(err.message);
+        const createdUser = {...user};
+        createdUser.isSignedIn = false;
+        createdUser.error = err.message;
+        setUser(createdUser);
+      })
+    }
+    e.preventDefault();
+    e.target.reset();
   }
 
   return (
@@ -123,7 +146,16 @@ function App() {
           </div>
         }
         <h1>User Authentication</h1>
-        <form onSubmit={createAccount}>
+        <input type="checkbox" name="switchForm" id="switchForm" onChange={switchForm}/>
+        <label htmlFor="switchForm">Returning User</label>
+        <form style={{display:user.existingUser ? 'block' : 'none'}} onSubmit={signInUser}>
+          <input type="text" onBlur={handleChange} name="email" placeholder="Your Email" required/>
+          <br/>
+          <input type="password" onBlur={handleChange} name="password" placeholder="Your Password" required/>
+          <br/>
+          <input type="submit" value="SignIn"/>
+        </form>
+        <form style={{display:user.existingUser ? 'none' : 'block'}} onSubmit={createAccount}>
           <input type="text" onBlur={handleChange} name="name" placeholder="Your Name" required/>
           <br/>
           <input type="text" onBlur={handleChange} name="email" placeholder="Your Email" required/>
